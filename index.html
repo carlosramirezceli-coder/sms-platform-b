@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SMS Platform B</title>
+<style>
+:root{--bg:#07070f;--surface:#0f0f1a;--surface2:#171726;--surface3:#1e1e30;--border:rgba(255,255,255,0.07);--accent:#6366f1;--accent2:#818cf8;--green:#34d399;--red:#f87171;--yellow:#fbbf24;--blue:#38bdf8;--text:#e2e8f0;--muted:#64748b;--r:14px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:99px;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--border);background:rgba(7,7,15,0.85);backdrop-filter:blur(20px);position:sticky;top:0;z-index:100;}
+.nav-logo{display:flex;align-items:center;gap:10px;}
+.nav-logo-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),#a78bfa);display:flex;align-items:center;justify-content:center;font-size:16px;}
+.nav-logo-text{font-size:17px;font-weight:700;letter-spacing:-.3px;}
+.nav-logo-text span{color:var(--accent2);}
+.nav-badge{padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:var(--accent2);letter-spacing:.5px;}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.api-key-input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-size:12px;font-family:monospace;width:260px;outline:none;transition:border-color .2s;}
+.api-key-input:focus{border-color:var(--accent);}
+.btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:9px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#818cf8);color:#fff;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(99,102,241,.4);}
+.btn-ghost{background:var(--surface2);border:1px solid var(--border);color:var(--text);}
+.btn-ghost:hover{background:var(--surface3);}
+.btn-danger{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);color:var(--red);}
+.btn-danger:hover{background:rgba(248,113,113,.2);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important;}
+.tabs{display:flex;gap:4px;padding:20px 32px 0;}
+.tab-btn{padding:9px 20px;border-radius:10px 10px 0 0;border:1px solid transparent;background:transparent;color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;border-bottom:none;}
+.tab-btn.active{background:var(--surface);border-color:var(--border);color:var(--text);}
+.tab-btn:hover:not(.active){color:var(--text);}
+.main{flex:1;padding:0 32px 32px;}
+.tab-panel{display:none;padding-top:24px;}
+.tab-panel.active{display:block;}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;}
+.sc-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;}
+.sc-val{font-size:32px;font-weight:800;letter-spacing:-1px;}
+.sc-sub{font-size:12px;color:var(--muted);margin-top:4px;}
+.sc-queued .sc-val{color:var(--blue);}
+.sc-sent .sc-val{color:var(--green);}
+.sc-failed .sc-val{color:var(--red);}
+.sc-devices .sc-val{color:var(--accent2);}
+.devices-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:24px;}
+.device-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;}
+.device-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.device-name{font-size:15px;font-weight:700;}
+.device-online{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--muted);}
+.pulse.online{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;}
+.pulse.offline{background:var(--red);}
+@keyframes pulse{0%,100%{box-shadow:0 0 4px var(--green);}50%{box-shadow:0 0 12px var(--green);}}
+.device-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.device-stat{background:var(--surface2);border-radius:8px;padding:8px 10px;}
+.ds-label{font-size:10px;color:var(--muted);margin-bottom:2px;}
+.ds-val{font-size:13px;font-weight:600;}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+.table-header h3{font-size:14px;font-weight:600;}
+.table-filters{display:flex;gap:8px;align-items:center;}
+.filter-select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-size:12px;outline:none;}
+table{width:100%;border-collapse:collapse;}
+th{padding:11px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--border);}
+td{padding:12px 16px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.03);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,0.02);}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600;}
+.badge-queued{background:rgba(56,189,248,.12);color:var(--blue);border:1px solid rgba(56,189,248,.2);}
+.badge-sending{background:rgba(251,191,36,.12);color:var(--yellow);border:1px solid rgba(251,191,36,.2);}
+.badge-sent{background:rgba(52,211,153,.12);color:var(--green);border:1px solid rgba(52,211,153,.2);}
+.badge-failed{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.2);}
+.td-mono{font-family:monospace;font-size:12px;color:var(--muted);}
+.td-msg{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.compose-grid{display:grid;grid-template-columns:1fr 380px;gap:20px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;}
+.card h3{font-size:14px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.form-group label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;}
+.form-group input,.form-group textarea,.form-group select{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;resize:none;}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--accent);}
+.char-bar{height:3px;border-radius:99px;background:var(--surface3);margin-top:4px;overflow:hidden;}
+.char-bar-fill{height:100%;border-radius:99px;background:var(--green);transition:width .2s,background .2s;}
+.bulk-area{font-family:monospace;font-size:12px;}
+.hint{font-size:11px;color:var(--muted);margin-top:4px;}
+.queue-preview{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;}
+.qp-item{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px 13px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.qp-to{font-size:12px;font-weight:600;color:var(--accent2);}
+.qp-msg{font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;}
+.qp-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 4px;border-radius:4px;transition:color .2s;}
+.qp-del:hover{color:var(--red);}
+.empty-queue{text-align:center;padding:32px;color:var(--muted);font-size:13px;}
+.toast-wrap{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:999;}
+.toast{padding:11px 16px;border-radius:10px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:9px;animation:toastIn .3s ease;min-width:210px;border:1px solid var(--border);}
+.toast.success{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.25);color:var(--green);}
+.toast.error{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.25);color:var(--red);}
+.toast.info{background:rgba(99,102,241,.12);border-color:rgba(99,102,241,.25);color:var(--accent2);}
+@keyframes toastIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes toastOut{to{transform:translateX(110%);opacity:0}}
+.spin{width:13px;height:13px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spinA .6s linear infinite;display:none;}
+.loading .spin{display:inline-block;}.loading .lbl{display:none;}
+@keyframes spinA{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-icon">🌐</div>
+    <div class="nav-logo-text">SMS<span>Platform</span></div>
+    <span class="nav-badge">PLATFORM B</span>
+  </div>
+  <div class="nav-right">
+    <input class="api-key-input" id="apiKeyInput" type="password" placeholder="API Key..."/>
+    <button class="btn btn-ghost" onclick="loadAll()">🔄 Refrescar</button>
+  </div>
+</nav>
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('dashboard',this)">📊 Dashboard</button>
+  <button class="tab-btn" onclick="switchTab('compose',this)">✍️ Enviar SMS</button>
+  <button class="tab-btn" onclick="switchTab('queue',this)">📋 Cola</button>
+  <button class="tab-btn" onclick="switchTab('devices',this)">📡 Dispositivos</button>
+</div>
+<div class="main">
+  <div class="tab-panel active" id="tab-dashboard">
+    <div class="stats-row">
+      <div class="stat-card sc-queued"><div class="sc-label">En cola</div><div class="sc-val" id="st-queued">—</div><div class="sc-sub">Pendientes de envío</div></div>
+      <div class="stat-card sc-sent"><div class="sc-label">Enviados</div><div class="sc-val" id="st-sent">—</div><div class="sc-sub">Total exitosos</div></div>
+      <div class="stat-card sc-failed"><div class="sc-label">Fallidos</div><div class="sc-val" id="st-failed">—</div><div class="sc-sub">Requieren atención</div></div>
+      <div class="stat-card sc-devices"><div class="sc-label">Dispositivos</div><div class="sc-val" id="st-devices">—</div><div class="sc-sub">Modems registrados</div></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header">
+        <h3>📨 Últimos mensajes</h3>
+        <div class="table-filters">
+          <select class="filter-select" id="dashFilter" onchange="loadMessages()">
+            <option value="">Todos</option>
+            <option value="queued">En cola</option>
+            <option value="sent">Enviados</option>
+            <option value="failed">Fallidos</option>
+          </select>
+        </div>
+      </div>
+      <table><thead><tr><th>Destino</th><th>Mensaje</th><th>Estado</th><th>Programado</th><th>Enviado</th><th></th></tr></thead>
+      <tbody id="msgTable"><tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted)">Ingresa tu API Key para cargar datos</td></tr></tbody></table>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-compose">
+    <div class="compose-grid">
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <h3>💬 Mensaje individual</h3>
+          <div class="form-group"><label>Número destino</label><input type="tel" id="c-to" placeholder="+57 300 123 4567"/></div>
+          <div class="form-group">
+            <label>Mensaje</label>
+            <textarea id="c-msg" rows="4" placeholder="Escribe tu mensaje..." oninput="updateBar()"></textarea>
+            <div class="char-bar"><div class="char-bar-fill" id="charFill" style="width:0%"></div></div>
+            <span class="hint" id="charHint">0 / 160 caracteres</span>
+          </div>
+          <div class="form-group"><label>Programar envío (opcional)</label><input type="datetime-local" id="c-sched"/></div>
+          <button class="btn btn-primary" id="btnSingle" onclick="enqueueSingle()"><div class="spin"></div><span class="lbl">➕ Agregar a cola</span></button>
+        </div>
+        <div class="card">
+          <h3>📦 Envío masivo</h3>
+          <div class="form-group">
+            <label>JSON de mensajes</label>
+            <textarea class="bulk-area" id="c-bulk" rows="7" placeholder='[{"to":"+57300000001","body":"Hola Juan"},{"to":"+57300000002","body":"Hola María"}]'></textarea>
+            <span class="hint">Array JSON con campos "to" y "body". Campo "scheduled_at" opcional.</span>
+          </div>
+          <button class="btn btn-primary" id="btnBulk" onclick="enqueueBulk()"><div class="spin"></div><span class="lbl">📤 Encolar todos</span></button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>⏳ Cola actual <span id="queueCount" style="color:var(--muted);font-weight:400;font-size:13px"></span></h3>
+        <div class="queue-preview" id="queuePreview"><div class="empty-queue">La cola está vacía</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-queue">
+    <div class="table-wrap">
+      <div class="table-header">
+        <h3>📋 Cola de mensajes</h3>
+        <div class="table-filters">
+          <select class="filter-select" id="queueFilter" onchange="loadQueue()">
+            <option value="queued">En cola</option>
+            <option value="sending">Enviando</option>
+            <option value="sent">Enviados</option>
+            <option value="failed">Fallidos</option>
+            <option value="">Todos</option>
+          </select>
+          <button class="btn btn-ghost" onclick="loadQueue()">🔄</button>
+        </div>
+      </div>
+      <table><thead><tr><th>ID</th><th>Destino</th><th>Mensaje</th><th>Estado</th><th>Programado</th><th>Creado</th><th></th></tr></thead>
+      <tbody id="queueTable"></tbody></table>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-devices">
+    <div class="devices-grid" id="devicesGrid"><div style="color:var(--muted);font-size:13px;padding:20px">Cargando...</div></div>
+    <div class="card" style="max-width:420px">
+      <h3>➕ Registrar nuevo dispositivo</h3>
+      <div class="form-group"><label>Nombre</label><input type="text" id="devName" placeholder="Ej: Modem Oficina"/></div>
+      <button class="btn btn-primary" id="btnRegDev" onclick="registerDevice()"><div class="spin"></div><span class="lbl">Registrar y obtener token</span></button>
+      <div id="devTokenResult" style="margin-top:14px;display:none">
+        <div class="form-group"><label>Token (guárdalo, no se mostrará de nuevo)</label><input type="text" id="devTokenVal" readonly style="font-family:monospace;font-size:11px"/></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast-wrap" id="toastWrap"></div>
+<script>
+const BASE=window.location.origin;
+const apiKey=()=>document.getElementById('apiKeyInput').value.trim();
+const hdrs=()=>({'Content-Type':'application/json','X-Api-Key':apiKey()});
+async function api(method,path,body){const o={method,headers:hdrs()};if(body)o.body=JSON.stringify(body);const r=await fetch(BASE+path,o);return r.json();}
+function switchTab(name,el){document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById('tab-'+name).classList.add('active');el.classList.add('active');if(name==='dashboard'){loadStats();loadMessages();}if(name==='compose')loadQueuePreview();if(name==='queue')loadQueue();if(name==='devices')loadDevices();}
+function loadAll(){loadStats();loadMessages();loadQueuePreview();loadDevices();}
+async function loadStats(){try{const d=await api('GET','/api/stats');document.getElementById('st-queued').textContent=d.queued??'—';document.getElementById('st-sent').textContent=d.sent??'—';document.getElementById('st-failed').textContent=d.failed??'—';const dv=await api('GET','/api/devices');document.getElementById('st-devices').textContent=dv.devices?.length??'—';}catch{}}
+async function loadMessages(){const s=document.getElementById('dashFilter').value;const qs=s?'?status='+s:'';try{const d=await api('GET','/api/messages'+qs);const tb=document.getElementById('msgTable');if(!d.messages?.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--muted)">Sin mensajes</td></tr>';return;}tb.innerHTML=d.messages.map(m=>`<tr><td style="font-weight:600">${m.to_number}</td><td class="td-msg">${esc(m.body)}</td><td>${badge(m.status)}</td><td class="td-mono">${fmt(m.scheduled_at)}</td><td class="td-mono">${fmt(m.sent_at)}</td><td>${m.status==='queued'?`<button class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="deleteMsg('${m.id}')">✕</button>`:''}</td></tr>`).join('');}catch{toast('Error cargando mensajes','error');}}
+async function loadQueue(){const s=document.getElementById('queueFilter').value;const qs=s?'?status='+s:'';try{const d=await api('GET','/api/messages'+qs);const tb=document.getElementById('queueTable');if(!d.messages?.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--muted)">Sin mensajes</td></tr>';return;}tb.innerHTML=d.messages.map(m=>`<tr><td class="td-mono" style="font-size:10px">${m.id.slice(0,8)}…</td><td style="font-weight:600">${m.to_number}</td><td class="td-msg">${esc(m.body)}</td><td>${badge(m.status)}</td><td class="td-mono">${fmt(m.scheduled_at)}</td><td class="td-mono">${fmt(m.created_at)}</td><td>${m.status==='queued'?`<button class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="deleteMsg('${m.id}')">✕</button>`:''}</td></tr>`).join('');}catch{toast('Error cargando cola','error');}}
+async function loadQueuePreview(){try{const d=await api('GET','/api/messages?status=queued');const msgs=d.messages||[];document.getElementById('queueCount').textContent=`(${msgs.length})`;const el=document.getElementById('queuePreview');if(!msgs.length){el.innerHTML='<div class="empty-queue">La cola está vacía ✓</div>';return;}el.innerHTML=msgs.map(m=>`<div class="qp-item"><div style="flex:1;min-width:0"><div class="qp-to">${m.to_number}</div><div class="qp-msg">${esc(m.body)}</div></div><button class="qp-del" onclick="deleteMsg('${m.id}',true)">✕</button></div>`).join('');}catch{}}
+function updateBar(){const len=document.getElementById('c-msg').value.length;const pct=Math.min(len/160*100,100);const f=document.getElementById('charFill');f.style.width=pct+'%';f.style.background=len>160?'var(--red)':len>130?'var(--yellow)':'var(--green)';document.getElementById('charHint').textContent=`${len} / 160 caracteres`;}
+async function enqueueSingle(){const to=document.getElementById('c-to').value.trim();const body=document.getElementById('c-msg').value.trim();const sched=document.getElementById('c-sched').value||null;if(!to||!body){toast('Número y mensaje requeridos','error');return;}const btn=document.getElementById('btnSingle');btn.disabled=true;btn.classList.add('loading');try{const d=await api('POST','/api/messages',{to,body,scheduled_at:sched});if(d.ok){toast('Mensaje agregado a la cola ✓','success');document.getElementById('c-to').value='';document.getElementById('c-msg').value='';document.getElementById('c-sched').value='';updateBar();loadQueuePreview();loadStats();}else toast(d.error||'Error','error');}catch{toast('Error de conexión','error');}finally{btn.disabled=false;btn.classList.remove('loading');}}
+async function enqueueBulk(){const raw=document.getElementById('c-bulk').value.trim();let msgs;try{msgs=JSON.parse(raw);}catch{toast('JSON inválido','error');return;}if(!Array.isArray(msgs)||!msgs.length){toast('Array vacío','error');return;}const btn=document.getElementById('btnBulk');btn.disabled=true;btn.classList.add('loading');try{const d=await api('POST','/api/messages/bulk',{messages:msgs});if(d.ok){toast(`${d.count} mensajes encolados ✓`,'success');document.getElementById('c-bulk').value='';loadQueuePreview();loadStats();}else toast(d.error||'Error','error');}catch{toast('Error de conexión','error');}finally{btn.disabled=false;btn.classList.remove('loading');}}
+async function deleteMsg(id,preview=false){try{await api('DELETE',`/api/messages/${id}`);toast('Eliminado','info');loadMessages();loadStats();if(preview)loadQueuePreview();else loadQueue();}catch{toast('Error al eliminar','error');}}
+async function loadDevices(){try{const d=await api('GET','/api/devices');const grid=document.getElementById('devicesGrid');if(!d.devices?.length){grid.innerHTML='<div style="color:var(--muted);font-size:13px;padding:20px">No hay dispositivos registrados</div>';return;}grid.innerHTML=d.devices.map(dev=>{const seen=dev.last_seen?new Date(dev.last_seen+'Z'):null;const online=seen&&(Date.now()-seen.getTime())<60000;const sig=dev.last_signal?JSON.parse(dev.last_signal):null;return`<div class="device-card"><div class="device-header"><div class="device-name">${dev.name}</div><div class="device-online"><div class="pulse ${online?'online':'offline'}"></div>${online?'En línea':seen?'Offline':'Nunca visto'}</div></div><div class="device-stats"><div class="device-stat"><div class="ds-label">Puerto</div><div class="ds-val">${dev.last_port||'—'}</div></div><div class="device-stat"><div class="ds-label">Red</div><div class="ds-val">${dev.last_network||'—'}</div></div><div class="device-stat"><div class="ds-label">dBm</div><div class="ds-val">${sig?.dbm!=null?sig.dbm+' dBm':'—'}</div></div><div class="device-stat"><div class="ds-label">Última vez</div><div class="ds-val" style="font-size:11px">${seen?seen.toLocaleTimeString():'—'}</div></div></div></div>`;}).join('');}catch{toast('Error cargando dispositivos','error');}}
+async function registerDevice(){const name=document.getElementById('devName').value.trim();if(!name){toast('Ingresa un nombre','error');return;}const btn=document.getElementById('btnRegDev');btn.disabled=true;btn.classList.add('loading');try{const d=await api('POST','/api/devices',{name});if(d.ok){document.getElementById('devTokenResult').style.display='block';document.getElementById('devTokenVal').value=d.token;toast('Dispositivo registrado. Copia el token ahora.','success');loadDevices();}else toast(d.error||'Error','error');}catch{toast('Error de conexión','error');}finally{btn.disabled=false;btn.classList.remove('loading');}}
+function badge(s){const m={queued:'badge-queued',sending:'badge-sending',sent:'badge-sent',failed:'badge-failed'};const i={queued:'⏳',sending:'📤',sent:'✓',failed:'✕'};return`<span class="badge ${m[s]||''}">${i[s]||''} ${s}</span>`;}
+function fmt(dt){if(!dt)return'—';return new Date(dt+(dt.includes('T')?'':'Z')).toLocaleString('es',{dateStyle:'short',timeStyle:'short'});}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function toast(msg,type='info'){const c=document.getElementById('toastWrap');const t=document.createElement('div');t.className=`toast ${type}`;t.innerHTML=`<span>${{success:'✓',error:'✕',info:'ℹ'}[type]}</span> ${msg}`;c.appendChild(t);setTimeout(()=>{t.style.animation='toastOut .3s ease forwards';setTimeout(()=>t.remove(),300);},3500);}
+setInterval(()=>{if(apiKey())loadAll();},20000);
+</script>
+</body>
+</html>
